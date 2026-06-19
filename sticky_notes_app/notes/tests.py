@@ -3,43 +3,51 @@ from django.urls import reverse
 from .models import StickyNote
 
 
-class StickyNoteModelTest(TestCase):
+class StickyNoteCRUDTests(TestCase):
+
     def setUp(self):
-        # Create a sample sticky note in the temporary test database
-        StickyNote.objects.create(
-            title="Study Milestones",
-            content="Complete Level 1 and Level 2 Django benchmarks."
+        """This runs automatically before EVERY test to give us starting data."""
+        self.note = StickyNote.objects.create(
+            title="Initial Test Note",
+            content="This is the starting content."
         )
 
-    def test_note_has_title(self):
-        """Test that a StickyNote object holds its expected title data"""
-        note = StickyNote.objects.get(id=1)
-        self.assertEqual(note.title, "Study Milestones")
-
-    def test_note_has_content(self):
-        """Test that a StickyNote object holds its expected text content"""
-        note = StickyNote.objects.get(id=1)
-        self.assertEqual(note.content, "Complete Level 1 and Level 2 Django benchmarks.")
-
-
-class StickyNoteViewTest(TestCase):
-    def setUp(self):
-        # Set up a sample note to verify view rendering pipelines
-        StickyNote.objects.create(
-            title="Gym Protocol",
-            content="Focus on heavy triples using RPE targeting."
-        )
-
-    def test_index_view_status_and_content(self):
-        """Test that the homepage loads successfully and displays notes"""
+    def test_read_note(self):
+        """1. Test the READ (View) use case"""
+        # Assuming your homepage URL name is 'index'
         response = self.client.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Gym Protocol")
-        self.assertContains(response, "Focus on heavy triples using RPE targeting.")
+        # Check if our dummy note shows up on the page
+        self.assertContains(response, "Initial Test Note")
 
-    def test_edit_view_status(self):
-        """Test that the edit view screen successfully loads
-        for a specific note"""
-        note = StickyNote.objects.get(id=1)
-        response = self.client.get(reverse('edit_note', args=[note.id]))
-        self.assertEqual(response.status_code, 200)
+    def test_create_note(self):
+        """2. Test the CREATE use case"""
+        # Assuming your create URL name is 'create_note' (or similar)
+        response = self.client.post(reverse('index'), {
+            'title': 'Brand New Note',
+            'content': 'Testing the creation pipeline.'
+        })
+        # We started with 1 note from setUp, now we should have 2
+        self.assertEqual(StickyNote.objects.count(), 2)
+        # Verify the exact note was saved to the database
+        self.assertTrue(StickyNote.objects.filter(title='Brand New Note').exists())
+
+    def test_update_note(self):
+        """3. Test the UPDATE (Edit) use case"""
+        # Assuming your edit URL takes the note ID: 'edit_note'
+        response = self.client.post(reverse('edit_note', args=[self.note.id]), {
+            'title': 'Updated Title',
+            'content': 'Updated Content'
+        })
+        # Pull the latest data from the test database
+        self.note.refresh_from_db()
+        # Assert that the changes actually stuck
+        self.assertEqual(self.note.title, 'Updated Title')
+        self.assertEqual(self.note.content, 'Updated Content')
+
+    def test_delete_note(self):
+        """4. Test the DELETE use case"""
+        # Assuming your delete URL takes the note ID: 'delete_note'
+        response = self.client.post(reverse('delete_note', args=[self.note.id]))
+        # The database should now be completely empty
+        self.assertEqual(StickyNote.objects.count(), 0)
