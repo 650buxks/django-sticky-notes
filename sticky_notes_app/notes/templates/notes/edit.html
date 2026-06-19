@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Sticky Note</title>
+    <link rel="stylesheet" href="{% static 'notes/style.css' %}">
+</head>
+<body>
+    <h1>✏️ Edit Your Sticky Note</h1>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <label style="color: white;">Title:</label><br>
+        <input type="text" name="title" value="{{ note.title }}" required><br><br>
+        
+        <label style="color: white;">Content:</label><br>
+        <textarea name="content" required>{{ note.content }}</textarea><br><br>
+        
+        <button type="submit">Save Changes</button>
+        <a href="{% url 'index' %}" style="color: #ff7b72; margin-left: 15px; text-decoration: none;">Cancel</a>
+    </form>
+</body>
+</html>

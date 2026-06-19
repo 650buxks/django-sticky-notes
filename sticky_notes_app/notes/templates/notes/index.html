@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Personal Sticky Notes</title>
+    <link rel="stylesheet" href="{% static 'notes/style.css' %}">
+</head>
+<body>
+    <h1>📌 My Sticky Notes Dashboard</h1>
+
+    <form method="POST" action="">
+        {% csrf_token %}  <input type="text" name="title" placeholder="Note Title" required><br><br>
+        <textarea name="content" placeholder="Write your sticky note here..." required></textarea><br><br>
+        <button type="submit">Pin Note</button>
+    </form>
+
+    <hr>
+
+    <div class="notes-container">
+        {% for note in notes %}
+            <div class="sticky-note">
+                <h3>{{ note.title }}</h3>
+                <p>{{ note.content }}</p>
+                <small>Created on: {{ note.created_at|date:"M d, Y" }}</small>
+
+                <br><br>
+                <a href="{% url 'edit_note' note.id %}" style="color: #58a6ff; text-decoration: none; font-size: 0.8rem; margin-right: 15px;">✏️ Edit</a>
+                <a href="{% url 'delete_note' note.id %}" style="color: #ff7b72; text-decoration: none; font-size: 0.8rem;">🗑️ Delete</a>
+            </div>
+        {% empty %}
+            <p>Your corkboard is completely clean! No notes created yet.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
